@@ -1,25 +1,21 @@
 const express = require("express");
 const router = express.Router();
+const {
+  createEvent,
+  getEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+} = require("../controllers/eventController");
+const { protect } = require("../middleware/authMiddleware");
 
-// TEST ROUTE FIRST
-router.get("/", (req, res) => {
-  res.json({ message: "GET Events Working" });
-});
+router.route("/")
+  .get(getEvents)
+  .post(protect, createEvent);
 
-// CREATE EVENT
-router.post("/", (req, res) => {
-  res.json({ message: "POST Events Working" });
-});
-
-router.delete("/:id", (req, res) => {
-  const eventId = req.params.id;
-
-  res.json({
-    message: "Event deleted successfully",
-    id: eventId
-  });
-});
-
-module.exports = router;
+router.route("/:id")
+  .get(getEventById)
+  .put(protect, updateEvent)
+  .delete(protect, deleteEvent);
 
 module.exports = router;
