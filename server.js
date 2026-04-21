@@ -22,6 +22,8 @@ app.get("/hello", (req, res) => {
 
 // ✅ AUTH ROUTE
 app.use("/api/auth", require("./routes/authRoutes"));
+console.log("EVENT ROUTE LOADING ✅");
+app.use("/api/events", require("./routes/eventRoutes"));
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("DB Connected"))
