@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
     const saved = localStorage.getItem('ems_user')
     return saved ? JSON.parse(saved) : null
   })
+  const token = localStorage.getItem('ems_token')
 
   const saveAuth = (userData, token) => {
     setUser(userData)
@@ -20,8 +21,17 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('ems_token')
   }
 
+  const isAdmin = user?.role === 'admin'
+  const isAuthenticated = !!(user && token)
+
   return (
-    <AuthContext.Provider value={{ user, saveAuth, logout }}>
+    <AuthContext.Provider value={{
+      user,
+      saveAuth,
+      logout,
+      isAuthenticated,
+      isAdmin
+    }}>
       {children}
     </AuthContext.Provider>
   )

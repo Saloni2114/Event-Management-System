@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { signup } from '../api'
+import { getApiErrorMessage, login, signup } from '../api'
 import { useAuth } from '../AuthContext'
 import { useToast } from '../components/ToastContext'
 import FormGroup from '../components/FormGroup'
@@ -18,12 +18,13 @@ export default function SignupPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const data = await signup(form)         // POST /api/auth/signup
-      saveAuth(data.user, data.token)
-      addToast('success', 'Account created!', `Welcome, ${data.user.name}`)
+      await signup(form)
+      const loginData = await login({ email: form.email, password: form.password })
+      saveAuth(loginData.user, loginData.token)
+      addToast('success', 'Account created!', `Welcome, ${loginData.user.name}`)
       navigate('/')
     } catch (err) {
-      addToast('error', 'Signup Failed', err.response?.data?.message || 'Could not create account')
+      addToast('error', 'Signup Failed', getApiErrorMessage(err, 'Could not create account'))
     } finally { setLoading(false) }
   }
 

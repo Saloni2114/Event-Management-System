@@ -1,34 +1,101 @@
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../AuthContext'
+import RegistrationModal from './RegistrationModal'
 
 export default function EventCard({ event, onRegister, isRegistered }) {
-  const seatsLeft = event.seats - event.registeredCount
-  const id = event._id || event.id
+  const navigate = useNavigate()
+  const { user } = useAuth()
+  const [showModal, setShowModal] = useState(false)
+
+  if (!event) {
+    console.warn('⚠️ EventCard: event prop is missing')
+    return null
+  }
+
+  const eventId = event._id || event.id
+
+  // 🛡️ Safety guard: Don't render if event has no valid ID
+  if (!eventId) {
+    console.warn('⚠️ EventCard: event missing valid ID', event)
+    return null
+  }
+
+  const seatsLeft = Math.max(0, Number(event.seats || 0) - Number(event.registeredCount || 0))
+  const isFull = event.seats && seatsLeft === 0
+
+  const handleClick = () => {
+    if (!eventId) {
+      console.error('❌ Cannot navigate: event ID is missing')
+      return
+    }
+    navigate(`/events/${eventId}`)
+  }
+
+  const handleRegisterClick = (e) => {
+    e.stopPropagation()
+    if (!user) {
+      navigate('/login')
+      return
+    }
+    // Open registration modal instead of direct API call
+    setShowModal(true)
+  }
+
+  const handleRegistrationSuccess = () => {
+    // Notify parent component about successful registration
+    onRegister?.(eventId)
+  }
 
   return (
-    <article className="card" style={{ padding:'var(--space-5)', display:'grid', gap:'var(--space-4)', transition:'transform var(--transition), box-shadow var(--transition)' }}
-      onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='var(--shadow-md)' }}
-      onMouseLeave={e => { e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow='' }}
-    >
-      <div className="badge">{event.category}</div>
-      <div>
-        <h3 style={{ fontSize:'var(--text-lg)', fontWeight:700, lineHeight:1.25 }}>{event.title}</h3>
-        <div style={{ display:'grid', gap:'var(--space-1)', color:'var(--color-text-muted)', fontSize:'var(--text-sm)', marginTop:'var(--space-2)' }}>
-          <span>📅 {event.date} &nbsp; 🕒 {event.time}</span>
-          <span>📍 {event.venue}</span>
-          <span>👥 {event.registeredCount}/{event.seats} &nbsp;({seatsLeft} seats left)</span>
+    <>
+      <div
+        className="event-card"
+        onClick={handleClick}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-8px)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+        style={{ cursor: 'pointer', transition: 'transform 0.3s ease' }}
+      >
+        {event.category && <div className="event-category">{event.category}</div>}
+        <div className="event-content">
+          <h3 className="event-title">{event.title}</h3>
+          <p className="event-description">{event.description?.substring(0, 100)}…</p>
+          <div className="event-details">
+            <div className="event-detail">
+              <span className="detail-icon">📅</span>
+              <span>{event.date || 'TBD'}</span>
+            </div>
+            <div className="event-detail">
+              <span className="detail-icon">📍</span>
+              <span>{event.venue || 'TBD'}</span>
+            </div>
+          </div>
+          <div className="event-stats">
+            <div className="stat">
+              <div className="stat-value">{event.registeredCount || 0}</div>
+              <div className="stat-label">Registered</div>
+            </div>
+            <div className="stat">
+              <div className="stat-value">{event.seats ? seatsLeft : '∞'}</div>
+              <div className="stat-label">Seats Left</div>
+            </div>
+          </div>
         </div>
-      </div>
-      <p className="muted" style={{ fontSize:'var(--text-sm)' }}>{event.description}</p>
-      <div style={{ display:'flex', gap:'var(--space-3)', flexWrap:'wrap' }}>
-        <Link to={`/events/${id}`} className="btn btn-secondary">View Details</Link>
         <button
-          className="btn btn-primary"
-          onClick={() => onRegister(id)}
-          disabled={isRegistered || seatsLeft === 0}
+          className={`event-register-btn ${isRegistered ? 'registered' : isFull ? 'full' : ''}`}
+          onClick={handleRegisterClick}
+          disabled={isRegistered || isFull}
         >
-          {isRegistered ? '✓ Registered' : seatsLeft === 0 ? 'Full' : 'Register'}
+          {isRegistered ? '✓ Registered' : isFull ? 'Event Full' : 'Register Now'}
         </button>
       </div>
-    </article>
+
+      <RegistrationModal
+        event={event}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={handleRegistrationSuccess}
+      />
+    </>
   )
 }

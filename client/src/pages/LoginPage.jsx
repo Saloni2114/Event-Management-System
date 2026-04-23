@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { login } from '../api'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { getApiErrorMessage, login } from '../api'
 import { useAuth } from '../AuthContext'
 import { useToast } from '../components/ToastContext'
 import FormGroup from '../components/FormGroup'
@@ -9,6 +9,7 @@ export default function LoginPage() {
   const { saveAuth } = useAuth()
   const { addToast } = useToast()
   const navigate     = useNavigate()
+  const location = useLocation()
   const [form, setForm]     = useState({ email:'', password:'' })
   const [loading, setLoading] = useState(false)
 
@@ -18,12 +19,12 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const data = await login(form)          // POST /api/auth/login
+      const data = await login(form)
       saveAuth(data.user, data.token)
       addToast('success', 'Welcome back!', `Logged in as ${data.user.name}`)
-      navigate('/')
+      navigate(location.state?.from || '/')
     } catch (err) {
-      addToast('error', 'Login Failed', err.response?.data?.message || 'Invalid credentials')
+      addToast('error', 'Login Failed', getApiErrorMessage(err, 'Invalid credentials'))
     } finally { setLoading(false) }
   }
 

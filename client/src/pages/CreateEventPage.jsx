@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createEvent } from '../api'
+import { createEvent, getApiErrorMessage } from '../api'
 import { useAuth } from '../AuthContext'
 import { useToast } from '../components/ToastContext'
 import FormGroup from '../components/FormGroup'
 
 export default function CreateEventPage() {
-  const { user }     = useAuth()
+  const { isAuthenticated } = useAuth()
   const { addToast } = useToast()
   const navigate     = useNavigate()
-  const [form, setForm] = useState({ title:'', category:'Workshop', date:'', time:'', venue:'', organizer:'', seats:'', description:'' })
+  const [form, setForm] = useState({ title:'', date:'', location:'', description:'' })
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => { if (!user) navigate('/login') }, [user])
+  useEffect(() => { if (!isAuthenticated) navigate('/login') }, [isAuthenticated, navigate])
 
   const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }))
 
@@ -20,11 +20,11 @@ export default function CreateEventPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await createEvent(form)               // POST /api/events
+      await createEvent(form)
       addToast('success', 'Event Created', 'Your event is now live.')
       navigate('/')
     } catch (err) {
-      addToast('error', 'Error', err.response?.data?.message || 'Could not create event')
+      addToast('error', 'Error', getApiErrorMessage(err, 'Could not create event'))
     } finally { setLoading(false) }
   }
 
@@ -39,33 +39,12 @@ export default function CreateEventPage() {
             <FormGroup label="Event Title">
               <input name="title" value={form.title} onChange={handleChange} placeholder="e.g. AI Workshop 2026" required />
             </FormGroup>
-            <div className="grid grid-2">
-              <FormGroup label="Category">
-                <select name="category" value={form.category} onChange={handleChange}>
-                  <option>Workshop</option><option>Seminar</option>
-                  <option>Competition</option><option>Meetup</option><option>Cultural</option>
-                </select>
-              </FormGroup>
-              <FormGroup label="Total Seats">
-                <input type="number" name="seats" value={form.seats} onChange={handleChange} placeholder="e.g. 100" min="1" required />
-              </FormGroup>
-            </div>
-            <div className="grid grid-2">
-              <FormGroup label="Date">
-                <input type="date" name="date" value={form.date} onChange={handleChange} required />
-              </FormGroup>
-              <FormGroup label="Time">
-                <input name="time" value={form.time} onChange={handleChange} placeholder="e.g. 10:00 AM" required />
-              </FormGroup>
-            </div>
-            <div className="grid grid-2">
-              <FormGroup label="Venue">
-                <input name="venue" value={form.venue} onChange={handleChange} placeholder="e.g. Auditorium A" required />
-              </FormGroup>
-              <FormGroup label="Organizer">
-                <input name="organizer" value={form.organizer} onChange={handleChange} placeholder="e.g. CSE Dept" />
-              </FormGroup>
-            </div>
+            <FormGroup label="Date">
+              <input type="date" name="date" value={form.date} onChange={handleChange} required />
+            </FormGroup>
+            <FormGroup label="Location">
+              <input name="location" value={form.location} onChange={handleChange} placeholder="e.g. Auditorium A" required />
+            </FormGroup>
             <FormGroup label="Description">
               <textarea name="description" value={form.description} onChange={handleChange} placeholder="What can attendees expect?" required />
             </FormGroup>

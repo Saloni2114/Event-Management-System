@@ -1,35 +1,76 @@
-import axios from 'axios'
+import axios from "axios";
 
-// Axios instance — base URL proxied to Express backend
-const client = axios.create({
-  baseURL: '/api',
-  headers: { 'Content-Type': 'application/json' }
-})
+const api = axios.create({
+  baseURL: "/api",
+  headers: {
+    "Content-Type": "application/json"
+  },
+});
 
-// Attach JWT token automatically to every request
-client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('ems_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("ems_token");
 
-// ── Auth ──────────────────────────────────────────────────
-export const signup = (payload) =>
-  client.post('/auth/signup', payload).then(r => r.data)
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-export const login = (payload) =>
-  client.post('/auth/login', payload).then(r => r.data)
+  return config;
+});
 
-// ── Events ────────────────────────────────────────────────
-export const fetchEvents = () =>
-  client.get('/events').then(r => r.data)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem("ems_token");
+      localStorage.removeItem("ems_user");
+    }
 
-export const fetchEventById = (id) =>
-  client.get(`/events/${id}`).then(r => r.data)
+    return Promise.reject(error);
+  }
+);
 
-export const createEvent = (payload) =>
-  client.post('/events', payload).then(r => r.data)
+export const getApiErrorMessage = (error, fallback = "Something went wrong") => {
+  if (error.response?.data?.message) return error.response.data.message;
+  if (error.code === "ERR_NETWORK") return "Network error: unable to reach backend server";
+  return fallback;
+};
 
-// ── Registration ──────────────────────────────────────────
-export const registerForEvent = (eventId) =>
-  client.post(`/events/${eventId}/register`).then(r => r.data)
+export const signup = async (payload) => {
+  const res = await api.post("/auth/signup", payload);
+  return res.data;
+};
+
+export const login = async (payload) => {
+  const res = await api.post("/auth/login", payload);
+
+  if (res.data?.token) {
+    localStorage.setItem("ems_token", res.data.token);
+  }
+
+  return res.data;
+};
+
+export const fetchEvents = async () => {
+  const res = await api.get("/events");
+  return res.data;
+};
+
+export const fetchEventById = async (id) => {
+  const res = await api.get(`/events/${id}`);
+  return res.data;
+};
+
+export const createEvent = async (payload) => {
+  const res = await api.post("/events", payload);
+  return res.data;
+};
+
+export const registerForEvent = async (eventId) => {
+  const res = await api.post(`/events/${eventId}/register`);
+  return res.data;
+};
+
+export const logout = () => {
+  localStorage.removeItem("ems_token");
+  localStorage.removeItem("ems_user");
+};

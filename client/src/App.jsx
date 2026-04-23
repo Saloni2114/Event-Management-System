@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import CreateEventPage from './pages/CreateEventPage'
 import EventDetailsPage from './pages/EventDetailsPage'
+import ProtectedRoute from './components/ProtectedRoute'
 
 export default function App() {
   return (
@@ -19,7 +20,7 @@ export default function App() {
             <Route path="/"           element={<HomePage />} />
             <Route path="/login"      element={<LoginPage />} />
             <Route path="/signup"     element={<SignupPage />} />
-            <Route path="/create"     element={<CreateEventPage />} />
+            <Route path="/create"     element={<ProtectedRoute adminOnly={true}><CreateEventPage /></ProtectedRoute>} />
             <Route path="/events/:id" element={<EventDetailsPage />} />
           </Routes>
         </main>

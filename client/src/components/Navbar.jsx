@@ -3,7 +3,7 @@ import { useAuth } from '../AuthContext'
 import { useState, useEffect } from 'react'
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, logout, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [theme, setTheme] = useState('light')
 
@@ -44,7 +44,7 @@ export default function Navbar() {
             {theme === 'dark' ? '☀ Light' : '☾ Dark'}
           </button>
           <Link to="/" className="btn btn-secondary">Home</Link>
-          {user && <Link to="/create" className="btn btn-primary">+ Create Event</Link>}
+          {isAdmin && <Link to="/create" className="btn btn-primary">+ Create Event</Link>}
           {user && <span className="pill-user">{user.name}</span>}
           {user
             ? <button className="btn btn-secondary" onClick={handleLogout}>Logout</button>

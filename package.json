@@ -1,0 +1,22 @@
+{
+  "name": "event-management-system",
+  "version": "1.0.0",
+  "description": "Full-stack MERN Event Management System",
+  "main": "ems-backend/server.js",
+  "scripts": {
+    "start": "node ems-backend/server.js",
+    "build": "cd client && npm install && npm run build",
+    "install-all": "npm install && cd client && npm install && cd ../ems-backend && npm install",
+    "dev": "cd ems-backend && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd ems-backend && npm run dev"
+  },
+  "keywords": ["mern", "event-management", "react", "express", "mongodb"],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

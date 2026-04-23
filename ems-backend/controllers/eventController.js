@@ -1,9 +1,14 @@
 const Event = require("../models/Event");
 const mongoose = require("mongoose");
 
-// CREATE EVENT
+// CREATE EVENT - ADMIN ONLY
 exports.createEvent = async (req, res) => {
   try {
+    // 🔐 Check if user is admin
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only admins can create events' });
+    }
+
     const event = await Event.create({
       ...req.body,
       createdBy: req.user.id
