@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// routes
+// API Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/events", require("./routes/eventRoutes"));
 
@@ -18,14 +18,15 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-// Serve static files from the React app build directory
+// Serve static React build
 app.use(express.static(path.join(__dirname, "../client/dist")));
 
-// Catch all handler: send back React's index.html file for any non-API routes
-app.get("*", (req, res) => {
+// Catch-all for React Router (FIXED wildcard)
+app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
+// Error handlers
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
@@ -39,13 +40,10 @@ const startServer = async () => {
   if (!process.env.MONGO_URI) {
     throw new Error("MONGO_URI is not set");
   }
-
   await mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
+    serverSelectionTimeoutMS: 5000,
   });
-
   console.log("MongoDB Connected ✅");
-
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
